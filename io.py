@@ -20,6 +20,13 @@ class CHIP8(pyglet.window.Window):
     pc = 0 #16 bit program counter
     stack = [] #stack pointer
 
+    self.funcmap = {
+        0x000: self._0ZZZ,
+        0x00e0: self._0ZZ0,
+        0x00ee: self._0ZZE,
+        0x1000: self._1ZZZ,
+    }
+
 
     def main(self) -> None:
         self.initialize()
@@ -49,10 +56,10 @@ class CHIP8(pyglet.window.Window):
             self.memory[i] = self.chip8_fontset[i]
             i += 1
 
-    def load_rom(self, rom_path) -> None:
+    def load_rom(self, ROM_PATH) -> None:
         """Loading ROM in the memory as a binary file"""
         logging.log(logging.INFO, "Loading ROM: %s", rom_path)
-        binary = open(rom_path, "rb").read()
+        binary = open(ROM_PATH, "rb").read()
         i :int = 0
         while i < len(binary):
             self.memory[i + 512] = binary[i]
@@ -61,6 +68,15 @@ class CHIP8(pyglet.window.Window):
     def cycle(self):
         self.opcode = self.memory[self.pc]
         self.pc += 2
+        self.vx = (self.opcode & 0x0F00) >> 8
+        self.vy = (self.opcode & 0x00F0) >> 4
+        self.pc += 2
+
+        extracted_op = self.opcode & 0xf000
+        try:
+            self.funcmap[extracted_op]()
+        except:
+            print("Unknown opcode: %s", self.opcode)
 
         if self.delay_timer > 0:
             self.delay_timer -= 1
@@ -68,4 +84,27 @@ class CHIP8(pyglet.window.Window):
             self.sound_timer -= 1
             if self.sound_timer == 0:
                 print("BEEP")
-            self.sound_timer -= 1
+
+    #All the OpCodes listed here - 
+
+    def _0ZZZ(self):
+        extracted_op = self.opcode & 0xf0ff
+        try:
+            self.funcmap[extracted_op]()
+        except:
+            print("Unknown opcode: %s", self.opcode)
+
+    def _0ZZ0(self):
+        logging.log("Clearing Screen")
+        self.display_buffer = [0]*364*32
+        self.should_draw = True
+
+    def _0ZZE(self):
+        logging.log("Returning from subroutine")
+        self.pc = self.stack.pop()
+
+    def _1ZZZ(self):
+        logging.log("Jumping addresses")
+        self.pc = self.opcode & 0x0fff
+
+    
