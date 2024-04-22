@@ -21,10 +21,10 @@ class CHIP8(pyglet.window.Window):
     stack = [] #stack pointer
 
     self.funcmap = {
-        0x000: self._0ZZZ,
-        0x00e0: self._0ZZ0,
-        0x00ee: self._0ZZE,
-        0x1000: self._1ZZZ,
+        0x000: _0ZZZ,
+        0x00e0: _0ZZ0,
+        0x00ee: _0ZZE,
+        0x1000: _1ZZZ,
     }
 
 
