@@ -1,7 +1,7 @@
 import pyglet
 import sys
 import logging
-
+from opcodes import Opcodes
 
 class CHIP8(pyglet.window.Window):
     """Pyglet window for CHIP-8 emulator - pyglet does not support threads"""
@@ -11,22 +11,18 @@ class CHIP8(pyglet.window.Window):
     def on_key_release(self, symbol, modifiers):
         pass
 
-    memory = [0]*4960 #4096 bytes of memory
-    display_buffer = [0]*32*64 #64x32 display buffer
-    gpio = [0]*16 #16 8-bit registers
-    sound_timer = 0 #sound timer
-    delay_timer = 0 #delay timer
-    index = 0 #16 bit index register
-    pc = 0 #16 bit program counter
-    stack = [] #stack pointer
+    memory = [0] * 4960  # 4096 bytes of memory
+    display_buffer = [0] * 32 * 64  # 64x32 display buffer
+    gpio = [0] * 16  # 16 8-bit registers
+    sound_timer = 0  # sound timer
+    delay_timer = 0  # delay timer
+    index = 0  # 16 bit index register
+    pc = 0  # 16 bit program counter
+    stack :list[str]= []  # stack pointer
 
-    self.funcmap = {
-        0x000: _0ZZZ,
-        0x00e0: _0ZZ0,
-        0x00ee: _0ZZE,
-        0x1000: _1ZZZ,
-    }
-
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.opcodes = Opcodes(self)
 
     def main(self) -> None:
         self.initialize()
@@ -58,7 +54,7 @@ class CHIP8(pyglet.window.Window):
 
     def load_rom(self, ROM_PATH) -> None:
         """Loading ROM in the memory as a binary file"""
-        logging.log(logging.INFO, "Loading ROM: %s", rom_path)
+        logging.log(logging.INFO, "Loading ROM: %s", ROM_PATH)
         binary = open(ROM_PATH, "rb").read()
         i :int = 0
         while i < len(binary):
